@@ -1,18 +1,40 @@
-﻿using System;
+﻿using RacerMotors;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using xNet.Net;
+using Формирование_ЧПУ;
 
 namespace jazzmoto
 {
     public partial class Form1 : Form
     {
+        Thread forms;
+
+        string minitextTemplate;
+        string fullTextTemplate;
+        string keywordsTextTemplate;
+        string titleTextTemplate;
+        string descriptionTextTemplate;
+        string otv;
+        string boldOpen = "<span style=\"\"font-weight: bold; font-weight: bold; \"\">";
+        string boldClose = "</span>";
+
+        List<string> newProduct = new List<string>();
+        FileEdit files = new FileEdit();
+        CHPU chpu = new CHPU();
+        CookieDictionary cookieNethouse = new CookieDictionary();
+
         public Form1()
         {
             InitializeComponent();
@@ -132,6 +154,207 @@ namespace jazzmoto
             writers.Close();
 
             MessageBox.Show("Сохранено");
+        }
+
+        private void btnActual_Click(object sender, EventArgs e)
+        {
+            #region Сохранение паролей
+            Properties.Settings.Default.login = tbLoginNethouse.Text;
+            Properties.Settings.Default.password = tbPassNethouse.Text;
+            Properties.Settings.Default.Save();
+            #endregion
+
+            #region Обработка сайта
+
+            minitextTemplate = MinitextStr();
+            fullTextTemplate = FulltextStr();
+            keywordsTextTemplate = tbKeywords.Lines[0].ToString();
+            titleTextTemplate = tbTitle.Lines[0].ToString();
+            descriptionTextTemplate = tbDescription.Lines[0].ToString();
+
+            Thread tabl = new Thread(() => ActualJazzMoto());
+            forms = tabl;
+            forms.IsBackground = true;
+            forms.Start();
+
+            #endregion
+        }
+
+        private void ActualJazzMoto()
+        {
+            
+            using (var request = new HttpRequest())
+            {
+                request.UserAgent = HttpHelper.RandomChromeUserAgent();
+                request.Cookies = cookieNethouse;
+                request.Proxy = HttpProxyClient.Parse("127.0.0.1:8888");
+                string post_data = "login=" + tbLoginNethouse.Text + "&password=" + tbPassNethouse.Text + "&quick_expire=0&submit=%D0%92%D0%BE%D0%B9%D1%82%D0%B8";
+                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
+                byte[] dataStream = Encoding.UTF8.GetBytes(String.Format(post_data));
+                request.Post("https://nethouse.ru/signin", dataStream).ToString();
+            }
+
+            if (cookieNethouse.Count == 1)
+            {
+                MessageBox.Show("Логин или пароль для сайта Nethouse введены не верно", "Ошибка логина/пароля");
+                return;
+            }
+
+            File.Delete("naSite.csv");
+            newProduct = newList();
+            ControlsFormEnabledFalse();
+
+            string otv = GetRequest("https://jazzmoto.ru/shop/tovari/dlya_pitbaykov/");
+
+            string textAllCategory = new Regex("(?<=<li id=\")[\\w\\W]*?(?=</li></ul>)").Match(otv).ToString();
+            MatchCollection urlNameCategory = new Regex("(?<=\"><a).*</a> <span>").Matches(textAllCategory);
+            for(int i = 0; urlNameCategory.Count > i; i++)
+            {
+                string urlCategory = new Regex("(?<=href=\").*(?=\">)").Match(urlNameCategory[i].ToString()).ToString();
+                urlCategory = "https://jazzmoto.ru" + urlCategory;
+                string nameCategory = new Regex("(?<=\">).*(?=</a>)").Match(urlNameCategory[i].ToString()).ToString();
+                GetUpdateTovar(cookieNethouse, urlCategory, urlNameCategory);
+            }
+
+
+            ControlsFormEnabledTrue();
+        }
+
+        private string GetRequest(string v)
+        {
+            var request2 = new HttpRequest();
+            request2.UserAgent = HttpHelper.RandomChromeUserAgent();
+            request2.Proxy = HttpProxyClient.Parse("127.0.0.1:8888");
+            // Отправляем запрос.
+            HttpResponse response = request2.Get(v);
+            // Принимаем тело сообщения в виде строки.
+            string content = response.ToText();
+            return content;
+        }
+
+        private void GetUpdateTovar(CookieDictionary cookieNethouse, string urlCategory, MatchCollection urlNameCategory)
+        {
+            string otv = GetRequest(urlCategory + "?count=all");
+            string allTovarsStr = new Regex("(?<=<div class=\"bx_catalog_list_home col3 bx_green\">)[\\w\\W]*?(?=id=\"add_ajax_item)").Match(otv).ToString();
+            MatchCollection urlTovars = new Regex("(?<=<a href=\").*?(?=\" title=\")").Matches(allTovarsStr);
+            foreach(Match s in urlTovars)
+            {
+                string urlTovar = "https://jazzmoto.ru" + s.ToString();
+                
+                List<string> tovarJMC = GetTovarJMC(urlTovar);
+            }
+        }
+
+        private List<string> GetTovarJMC(string urlTovar)
+        {
+            List<string> tovar = new List<string>();
+
+            string otvTovar = GetRequest(urlTovar);
+            bool availability = otvTovar.Contains("<span class=\"item_section_name_gray\" style=\"display: ;\">");
+
+            if (!availability)    
+                return tovar = null;
+
+
+            
+
+
+
+            return tovar;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            tbLoginNethouse.Text = Properties.Settings.Default.login;
+            tbPassNethouse.Text = Properties.Settings.Default.password;
+        }
+
+        private string MinitextStr()
+        {
+            string minitext = "";
+            for (int z = 0; rtbMiniText.Lines.Length > z; z++)
+            {
+                if (rtbMiniText.Lines[z].ToString() == "")
+                {
+                    minitext += "<p><br /></p>";
+                }
+                else
+                {
+                    minitext += "<p>" + rtbMiniText.Lines[z].ToString() + "</p>";
+                }
+            }
+            return minitext;
+        }
+
+        private string FulltextStr()
+        {
+            string fullText = "";
+            for (int z = 0; rtbFullText.Lines.Length > z; z++)
+            {
+                if (rtbFullText.Lines[z].ToString() == "")
+                {
+                    fullText += "<p><br /></p>";
+                }
+                else
+                {
+                    fullText += "<p>" + rtbFullText.Lines[z].ToString() + "</p>";
+                }
+            }
+            return fullText;
+        }
+
+        private List<string> newList()
+        {
+            List<string> newProduct = new List<string>();
+            newProduct.Add("id");                                                                               //id
+            newProduct.Add("Артикул *");                                                 //артикул
+            newProduct.Add("Название товара *");                                          //название
+            newProduct.Add("Стоимость товара *");                                    //стоимость
+            newProduct.Add("Стоимость со скидкой");                                       //со скидкой
+            newProduct.Add("Раздел товара *");                                         //раздел товара
+            newProduct.Add("Товар в наличии *");                                                    //в наличии
+            newProduct.Add("Поставка под заказ *");                                                 //поставка
+            newProduct.Add("Срок поставки (дни) *");                                           //срок поставки
+            newProduct.Add("Краткий текст");                                 //краткий текст
+            newProduct.Add("Текст полностью");                                          //полностью текст
+            newProduct.Add("Заголовок страницы (title)");                               //заголовок страницы
+            newProduct.Add("Описание страницы (description)");                                 //описание
+            newProduct.Add("Ключевые слова страницы (keywords)");                                 //ключевые слова
+            newProduct.Add("ЧПУ страницы (slug)");                                   //ЧПУ
+            newProduct.Add("С этим товаром покупают");                              //с этим товаром покупают
+            newProduct.Add("Рекламные метки");
+            newProduct.Add("Показывать на сайте *");                                           //показывать
+            newProduct.Add("Удалить *");                                    //удалить
+            files.fileWriterCSV(newProduct, "naSite");
+            return newProduct;
+        }
+
+        private void ControlsFormEnabledFalse()
+        {
+            btnActual.Invoke(new Action(() => btnActual.Enabled = false));
+            btnImages.Invoke(new Action(() => btnImages.Enabled = false));
+            btnSaveTemplate.Invoke(new Action(() => btnSaveTemplate.Enabled = false));
+            rtbFullText.Invoke(new Action(() => rtbFullText.Enabled = false));
+            rtbMiniText.Invoke(new Action(() => rtbMiniText.Enabled = false));
+            tbDescription.Invoke(new Action(() => tbDescription.Enabled = false));
+            tbKeywords.Invoke(new Action(() => tbKeywords.Enabled = false));
+            tbTitle.Invoke(new Action(() => tbTitle.Enabled = false));
+            tbLoginNethouse.Invoke(new Action(() => tbLoginNethouse.Enabled = false));
+            tbPassNethouse.Invoke(new Action(() => tbPassNethouse.Enabled = false));
+        }
+
+        private void ControlsFormEnabledTrue()
+        {
+            btnActual.Invoke(new Action(() => btnActual.Enabled = true));
+            btnImages.Invoke(new Action(() => btnImages.Enabled = true));
+            btnSaveTemplate.Invoke(new Action(() => btnSaveTemplate.Enabled = true));
+            rtbFullText.Invoke(new Action(() => rtbFullText.Enabled = true));
+            rtbMiniText.Invoke(new Action(() => rtbMiniText.Enabled = true));
+            tbDescription.Invoke(new Action(() => tbDescription.Enabled = true));
+            tbKeywords.Invoke(new Action(() => tbKeywords.Enabled = true));
+            tbTitle.Invoke(new Action(() => tbTitle.Enabled = true));
+            tbLoginNethouse.Invoke(new Action(() => tbLoginNethouse.Enabled = true));
+            tbPassNethouse.Invoke(new Action(() => tbPassNethouse.Enabled = true));
         }
     }
 }

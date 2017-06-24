@@ -56,6 +56,7 @@
             // 
             // btnImages
             // 
+            this.btnImages.Enabled = false;
             this.btnImages.Location = new System.Drawing.Point(575, 110);
             this.btnImages.Name = "btnImages";
             this.btnImages.Size = new System.Drawing.Size(218, 23);
@@ -108,6 +109,7 @@
             this.btnActual.TabIndex = 14;
             this.btnActual.Text = "Обработать сайт";
             this.btnActual.UseVisualStyleBackColor = true;
+            this.btnActual.Click += new System.EventHandler(this.btnActual_Click);
             // 
             // groupBox1
             // 
@@ -171,6 +173,7 @@
             this.Controls.Add(this.groupBox1);
             this.Name = "Form1";
             this.Text = "JazzMoto";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
