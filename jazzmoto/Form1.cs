@@ -255,12 +255,58 @@ namespace jazzmoto
             if (!availability)    
                 return tovar = null;
 
+            MatchCollection infoSection = new Regex("(?<=<div class=\"item_info_section\">)[\\w\\W]*?(?=</div>)").Matches(otvTovar);
 
+            MatchCollection parametrsString = new Regex("(?<=<b>).*?(?=<br>)").Matches(infoSection[0].ToString());
+            string miniDescription = "";
+            string article = new Regex("(?<=Товара:</b>).*?(?=<br>)").Match(infoSection[0].ToString()).ToString().Trim();
+            string newArticle = "JMC_" + article;
+            foreach (Match s in parametrsString)
+            {
+                string parametrsStr = s.ToString().Replace(":</b>", "");
+                if (parametrsStr.Contains("ШтрихКод"))
+                    continue;
+                miniDescription += parametrsStr + "<br >";
+            }
+            miniDescription = miniDescription.Replace(article, newArticle);
+            miniDescription += infoSection[1].ToString();
+            string price = new Regex("(?<=Цена).*?(?=руб)").Match(infoSection[2].ToString()).ToString().Trim();
+            price = ReturnPrice(price);
+            string name = new Regex("(?<=<h1><span itemprop=\"name\">).*?(?=</span></h1>)").Match(otvTovar).ToString();
+            string slug = chpu.vozvr(name);
+
+            string razdel = ReturnRazdel(otvTovar);
+
+            tovar.Add(article);
+            tovar.Add(newArticle);
+            tovar.Add(name);
+            tovar.Add(price);
+            tovar.Add(razdel);
+            tovar.Add(miniDescription);
+            tovar.Add(slug);
             
-
-
-
             return tovar;
+        }
+
+        private string ReturnRazdel(string otvTovar)
+        {
+            string razdel = "Запчасти и расходники => Запчасти для питбайков => ";
+
+            MatchCollection allRazdels = new Regex("(?<=<a href=\").*?(?=itemprop=\"url\">)").Matches(otvTovar);
+            string nameRazdel = new Regex("(?<=title=\").*?(?=\")").Match(allRazdels[allRazdels.Count - 1].ToString()).ToString();
+
+            razdel += nameRazdel;
+            return razdel;
+        }
+
+        private string ReturnPrice(string price)
+        {
+            price = price.Replace(" ", "");
+            int p = Convert.ToInt32(price);
+            p = p - (p/100);
+            p = (p / 10) * 10;
+            price = p.ToString();
+            return price;
         }
 
         private void Form1_Load(object sender, EventArgs e)
