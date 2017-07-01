@@ -30,6 +30,7 @@ namespace jazzmoto
         string otv;
         string boldOpen = "<span style=\"\"font-weight: bold; font-weight: bold; \"\">";
         string boldClose = "</span>";
+        int countUpdateImage = 0;
 
         List<string> newProduct = new List<string>();
         FileEdit files = new FileEdit();
@@ -186,16 +187,7 @@ namespace jazzmoto
 
         private void ActualJazzMoto()
         {
-            using (var request = new HttpRequest())
-            {
-                request.UserAgent = HttpHelper.RandomChromeUserAgent();
-                request.Cookies = cookieNethouse;
-                request.Proxy = HttpProxyClient.Parse("127.0.0.1:8888");
-                string post_data = "login=" + tbLoginNethouse.Text + "&password=" + tbPassNethouse.Text + "&quick_expire=0&submit=%D0%92%D0%BE%D0%B9%D1%82%D0%B8";
-                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
-                byte[] dataStream = Encoding.UTF8.GetBytes(String.Format(post_data));
-                request.Post("https://nethouse.ru/signin", dataStream).ToString();
-            }
+            CookieNethouse();
 
             if (cookieNethouse.Count == 1)
             {
@@ -220,8 +212,21 @@ namespace jazzmoto
                 UploadTovar();
             }
 
-
             ControlsFormEnabledTrue();
+        }
+
+        private void CookieNethouse()
+        {
+            using (var request = new HttpRequest())
+            {
+                request.UserAgent = HttpHelper.RandomChromeUserAgent();
+                request.Cookies = cookieNethouse;
+                request.Proxy = HttpProxyClient.Parse("127.0.0.1:8888");
+                string post_data = "login=" + tbLoginNethouse.Text + "&password=" + tbPassNethouse.Text + "&quick_expire=0&submit=%D0%92%D0%BE%D0%B9%D1%82%D0%B8";
+                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
+                byte[] dataStream = Encoding.UTF8.GetBytes(String.Format(post_data));
+                request.Post("https://nethouse.ru/signin", dataStream).ToString();
+            }
         }
 
         private void UploadTovar()
@@ -375,7 +380,7 @@ namespace jazzmoto
             miniDescription = miniDescription.Replace("\n", "");
 
             string price = "";
-            if(infoSection.Count == 5)
+            if (infoSection.Count == 5)
                 price = new Regex("(?<=Цена).*?(?=руб)").Match(infoSection[2].ToString()).ToString().Trim();
             else
                 price = new Regex("(?<=Цена).*?(?=руб)").Match(infoSection[1].ToString()).ToString().Trim();
@@ -578,7 +583,96 @@ namespace jazzmoto
 
         private void btnImages_Click(object sender, EventArgs e)
         {
+            #region Сохранение паролей
+            Properties.Settings.Default.login = tbLoginNethouse.Text;
+            Properties.Settings.Default.password = tbPassNethouse.Text;
+            Properties.Settings.Default.Save();
+            #endregion
 
+            #region Обработка сайта
+
+            Thread tabl = new Thread(() => UploadImages());
+            forms = tabl;
+            forms.IsBackground = true;
+            forms.Start();
+
+            #endregion
+        }
+
+        private void UploadImages()
+        {
+            cookie = nethouse.CookieNethouse(tbLoginNethouse.Text, tbPassNethouse.Text);
+
+            if (cookie.Count == 1)
+            {
+                MessageBox.Show("Логин или пароль для сайта Nethouse введены не верно", "Ошибка логина/пароля");
+                return;
+            }
+
+            ControlsFormEnabledFalse();
+
+            countUpdateImage = 0;
+            otv = GetRequest("https://bike18.ru/products/category/zapchasti-dlya-pitbikov");
+            MatchCollection razdel = new Regex("(?<=</div></a><div class=\"category-capt-txt -text-center\"><a href=\").*?(?=\" class=\"blue\">)").Matches(otv);
+
+            for (int i = 0; razdel.Count > i; i++)
+            {
+                otv = GetRequest("http://bike18.ru" + razdel[i].ToString() + "?page=all");
+                MatchCollection tovar = new Regex("(?<=<div class=\"product-link -text-center\"><a href=\").*(?=\" >)").Matches(otv);
+                foreach (Match s in tovar)
+                {
+                    string urlTovar = s.ToString();
+                    UpdateImage(urlTovar);
+                }
+            }
+
+            MessageBox.Show("Обновленно " + countUpdateImage + "карточек товара");
+            ControlsFormEnabledTrue();
+        }
+
+        private void UpdateImage(string urlTovar)
+        {
+            bool b = false;
+            string articl = null;
+            string images = null;
+            string alsoby = null;
+            string productGroupe = null;
+
+            List<string> listProd = nethouse.GetProductList(cookie, urlTovar);
+            articl = listProd[6];
+            images = listProd[32];
+            alsoby = listProd[42];
+            productGroupe = listProd[3];
+
+            if (listProd[9] == "")
+                listProd[9] = "0";
+
+            if (images == "")
+            {
+                if (File.Exists("Pic\\" + articl + ".jpg"))
+                {
+                    nethouse.UploadImage(cookie, urlTovar.ToString());
+                    b = true;
+                    countUpdateImage++;
+                }
+            }
+
+            if (alsoby.Contains("&alsoBuy[0]=0") || alsoby.Contains("&alsoBuy[0]=als"))
+            {
+                listProd[42] = nethouse.alsoBuyTovars(listProd);
+                b = true;
+                countUpdateImage++;
+            }
+
+            if (productGroupe != "10833347")
+            {
+                listProd[3] = "10833347";
+                b = true;
+                countUpdateImage++;
+            }
+
+            if (b)
+                nethouse.SaveTovar(cookie, listProd);
         }
     }
 }
