@@ -37,6 +37,7 @@ namespace jazzmoto
         CookieDictionary cookieNethouse = new CookieDictionary();
         nethouse nethouse = new nethouse();
         CookieContainer cookie = new CookieContainer();
+        WebClient webClient = new WebClient();
 
         public Form1()
         {
@@ -352,6 +353,12 @@ namespace jazzmoto
             if (article == "")
                 return tovar = null;
             string newArticle = "JMC_" + article;
+
+            string urlImg = new Regex("(?<=<img itemprop=\"image\").*(?=\" alt)").Match(otvTovar).ToString();
+            urlImg = "https:" + new Regex("(?<=src=\").*").Match(urlImg).ToString();
+
+            DownloadImages(urlImg, newArticle);
+
             string miniDescription = "";
             if (infoSection.Count == 5)
             {
@@ -398,6 +405,21 @@ namespace jazzmoto
 
             razdel += nameRazdel;
             return razdel;
+        }
+
+        private void DownloadImages(string urlImg, object article)
+        {
+            if (!File.Exists("Pic\\" + article + ".jpg"))
+            {
+                try
+                {
+                    webClient.DownloadFile(urlImg, "Pic\\" + article + ".jpg");
+                }
+                catch
+                {
+
+                }
+            }
         }
 
         private string ReturnPrice(string price)
@@ -493,7 +515,7 @@ namespace jazzmoto
         private void ControlsFormEnabledTrue()
         {
             btnActual.Invoke(new Action(() => btnActual.Enabled = true));
-            //btnImages.Invoke(new Action(() => btnImages.Enabled = true));
+            btnImages.Invoke(new Action(() => btnImages.Enabled = true));
             btnSaveTemplate.Invoke(new Action(() => btnSaveTemplate.Enabled = true));
             rtbFullText.Invoke(new Action(() => rtbFullText.Enabled = true));
             rtbMiniText.Invoke(new Action(() => rtbMiniText.Enabled = true));
@@ -552,6 +574,11 @@ namespace jazzmoto
                     text = text.Remove(text.LastIndexOf(" "));
             }
             return text;
+        }
+
+        private void btnImages_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
