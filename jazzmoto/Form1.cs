@@ -32,10 +32,12 @@ namespace jazzmoto
         string boldClose = "</span>";
         int countUpdateImage = 0;
 
+        bool chekedSEO = false;
+
         List<string> newProduct = new List<string>();
         FileEdit files = new FileEdit();
         CHPU chpu = new CHPU();
-        CookieDictionary cookieNethouse = new CookieDictionary();
+        CookieContainer cookieNethouse = new CookieContainer();
         nethouse nethouse = new nethouse();
         CookieContainer cookie = new CookieContainer();
         WebClient webClient = new WebClient();
@@ -187,13 +189,15 @@ namespace jazzmoto
 
         private void ActualJazzMoto()
         {
-            CookieNethouse();
+            cookieNethouse = nethouse.CookieNethouse(tbLoginNethouse.Text, tbPassNethouse.Text);
 
             if (cookieNethouse.Count == 1)
             {
                 MessageBox.Show("Логин или пароль для сайта Nethouse введены не верно", "Ошибка логина/пароля");
                 return;
             }
+
+            chekedSEO = cbSEO.Checked;
 
             File.Delete("naSite.csv");
             newProduct = newList();
@@ -213,20 +217,6 @@ namespace jazzmoto
             }
 
             ControlsFormEnabledTrue();
-        }
-
-        private void CookieNethouse()
-        {
-            using (var request = new HttpRequest())
-            {
-                request.UserAgent = HttpHelper.RandomChromeUserAgent();
-                request.Cookies = cookieNethouse;
-                request.Proxy = HttpProxyClient.Parse("127.0.0.1:8888");
-                string post_data = "login=" + tbLoginNethouse.Text + "&password=" + tbPassNethouse.Text + "&quick_expire=0&submit=%D0%92%D0%BE%D0%B9%D1%82%D0%B8";
-                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
-                byte[] dataStream = Encoding.UTF8.GetBytes(String.Format(post_data));
-                request.Post("https://nethouse.ru/signin", dataStream).ToString();
-            }
         }
 
         private void UploadTovar()
@@ -252,7 +242,7 @@ namespace jazzmoto
             return content;
         }
 
-        private void GetUpdateTovar(CookieDictionary cookieNethouse, string urlCategory, MatchCollection urlNameCategory)
+        private void GetUpdateTovar(CookieContainer cookieNethouse, string urlCategory, MatchCollection urlNameCategory)
         {
             string otv = GetRequest(urlCategory + "?count=all");
             string allTovarsStr = new Regex("(?<=<div class=\"bx_catalog_list_home col3 bx_green\">)[\\w\\W]*?(?=id=\"add_ajax_item)").Match(otv).ToString();
@@ -273,7 +263,38 @@ namespace jazzmoto
                 }
                 else
                 {
+                    List<string> tovarB18 = nethouse.GetProductList(cookieNethouse, urlTovarB18);
 
+                    bool edits = false;
+
+                    if(tovarB18[9] != tovarJMC[3])
+                    {
+                        tovarB18[9] = tovarJMC[3];
+                        edits = true;
+                    }
+
+                    if (chekedSEO)
+                    {
+                        string article = tovarJMC[0];
+                        string newArticle = tovarJMC[1];
+                        string name = tovarJMC[2];
+
+                        string descriptionText = descriptionTextTemplate;
+                        string titleText = titleTextTemplate;
+                        string keywordsText = keywordsTextTemplate;
+
+                        titleText = ReplaceSEO("title", titleText, name, article.Replace(";", " "), newArticle.Replace(";", " "));
+                        descriptionText = ReplaceSEO("description", descriptionText, name, article, newArticle);
+                        keywordsText = ReplaceSEO("keywords", keywordsText, name, article, newArticle);
+
+                        tovarB18[11] = descriptionText;
+                        tovarB18[12] = keywordsText;
+                        tovarB18[13] = titleText;
+                        edits = true;
+                    }
+
+                    if (edits)
+                        nethouse.SaveTovar(cookieNethouse, tovarB18);
                 }
             }
         }

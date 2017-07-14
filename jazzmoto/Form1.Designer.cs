@@ -41,12 +41,13 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tbLoginNethouse = new System.Windows.Forms.TextBox();
             this.tbPassNethouse = new System.Windows.Forms.TextBox();
+            this.cbSEO = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnSaveTemplate
             // 
-            this.btnSaveTemplate.Location = new System.Drawing.Point(575, 139);
+            this.btnSaveTemplate.Location = new System.Drawing.Point(460, 139);
             this.btnSaveTemplate.Name = "btnSaveTemplate";
             this.btnSaveTemplate.Size = new System.Drawing.Size(218, 23);
             this.btnSaveTemplate.TabIndex = 21;
@@ -56,7 +57,7 @@
             // 
             // btnImages
             // 
-            this.btnImages.Location = new System.Drawing.Point(575, 110);
+            this.btnImages.Location = new System.Drawing.Point(460, 110);
             this.btnImages.Name = "btnImages";
             this.btnImages.Size = new System.Drawing.Size(218, 23);
             this.btnImages.TabIndex = 20;
@@ -68,28 +69,28 @@
             // 
             this.tbKeywords.Location = new System.Drawing.Point(12, 308);
             this.tbKeywords.Name = "tbKeywords";
-            this.tbKeywords.Size = new System.Drawing.Size(557, 20);
+            this.tbKeywords.Size = new System.Drawing.Size(442, 20);
             this.tbKeywords.TabIndex = 19;
             // 
             // tbDescription
             // 
             this.tbDescription.Location = new System.Drawing.Point(12, 282);
             this.tbDescription.Name = "tbDescription";
-            this.tbDescription.Size = new System.Drawing.Size(557, 20);
+            this.tbDescription.Size = new System.Drawing.Size(442, 20);
             this.tbDescription.TabIndex = 18;
             // 
             // tbTitle
             // 
             this.tbTitle.Location = new System.Drawing.Point(12, 256);
             this.tbTitle.Name = "tbTitle";
-            this.tbTitle.Size = new System.Drawing.Size(557, 20);
+            this.tbTitle.Size = new System.Drawing.Size(442, 20);
             this.tbTitle.TabIndex = 17;
             // 
             // rtbFullText
             // 
             this.rtbFullText.Location = new System.Drawing.Point(12, 134);
             this.rtbFullText.Name = "rtbFullText";
-            this.rtbFullText.Size = new System.Drawing.Size(557, 116);
+            this.rtbFullText.Size = new System.Drawing.Size(442, 116);
             this.rtbFullText.TabIndex = 16;
             this.rtbFullText.Text = "";
             // 
@@ -97,13 +98,13 @@
             // 
             this.rtbMiniText.Location = new System.Drawing.Point(12, 12);
             this.rtbMiniText.Name = "rtbMiniText";
-            this.rtbMiniText.Size = new System.Drawing.Size(557, 116);
+            this.rtbMiniText.Size = new System.Drawing.Size(442, 116);
             this.rtbMiniText.TabIndex = 15;
             this.rtbMiniText.Text = "";
             // 
             // btnActual
             // 
-            this.btnActual.Location = new System.Drawing.Point(575, 81);
+            this.btnActual.Location = new System.Drawing.Point(460, 81);
             this.btnActual.Name = "btnActual";
             this.btnActual.Size = new System.Drawing.Size(218, 23);
             this.btnActual.TabIndex = 14;
@@ -117,7 +118,7 @@
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.tbLoginNethouse);
             this.groupBox1.Controls.Add(this.tbPassNethouse);
-            this.groupBox1.Location = new System.Drawing.Point(575, 12);
+            this.groupBox1.Location = new System.Drawing.Point(460, 12);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(218, 63);
             this.groupBox1.TabIndex = 12;
@@ -157,11 +158,22 @@
             this.tbPassNethouse.Size = new System.Drawing.Size(100, 20);
             this.tbPassNethouse.TabIndex = 1;
             // 
+            // cbSEO
+            // 
+            this.cbSEO.AutoSize = true;
+            this.cbSEO.Location = new System.Drawing.Point(460, 168);
+            this.cbSEO.Name = "cbSEO";
+            this.cbSEO.Size = new System.Drawing.Size(100, 17);
+            this.cbSEO.TabIndex = 22;
+            this.cbSEO.Text = "Обновить СЕО";
+            this.cbSEO.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(804, 339);
+            this.ClientSize = new System.Drawing.Size(689, 339);
+            this.Controls.Add(this.cbSEO);
             this.Controls.Add(this.btnSaveTemplate);
             this.Controls.Add(this.btnImages);
             this.Controls.Add(this.tbKeywords);
@@ -196,6 +208,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox tbLoginNethouse;
         private System.Windows.Forms.TextBox tbPassNethouse;
+        private System.Windows.Forms.CheckBox cbSEO;
     }
 }
 
