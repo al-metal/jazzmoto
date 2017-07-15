@@ -293,6 +293,12 @@ namespace jazzmoto
                         edits = true;
                     }
 
+                    if (tovarB18[42].Contains("&alsoBuy[0]=0"))
+                    {
+                        tovarB18[42] = nethouse.alsoBuyTovars(tovarB18);
+                        edits = true;
+                    }
+
                     if (edits)
                         nethouse.SaveTovar(cookieNethouse, tovarB18);
                 }
