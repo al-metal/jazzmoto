@@ -28,11 +28,12 @@ namespace jazzmoto
         string titleTextTemplate;
         string descriptionTextTemplate;
         string otv;
-        string boldOpen = "<span style=\"\"font-weight: bold; font-weight: bold; \"\">";
+        string boldOpen = "<span style=\"\"font-weight: bold; font-weight: bold;\"\">";
         string boldClose = "</span>";
         int countUpdateImage = 0;
 
         bool chekedSEO = false;
+        bool chekedMiniText = false;
 
         List<string> newProduct = new List<string>();
         FileEdit files = new FileEdit();
@@ -189,19 +190,22 @@ namespace jazzmoto
 
         private void ActualJazzMoto()
         {
+            ControlsFormEnabledFalse();
             cookieNethouse = nethouse.CookieNethouse(tbLoginNethouse.Text, tbPassNethouse.Text);
 
             if (cookieNethouse.Count == 1)
             {
                 MessageBox.Show("Логин или пароль для сайта Nethouse введены не верно", "Ошибка логина/пароля");
+                ControlsFormEnabledTrue();
                 return;
             }
 
             chekedSEO = cbSEO.Checked;
+            chekedMiniText = cbMinitext.Checked;
 
             File.Delete("naSite.csv");
             newProduct = newList();
-            ControlsFormEnabledFalse();
+            
 
             string otv = GetRequest("https://jazzmoto.ru/shop/tovari/dlya_pitbaykov/"); 
 
@@ -265,6 +269,10 @@ namespace jazzmoto
                 {
                     List<string> tovarB18 = nethouse.GetProductList(cookieNethouse, urlTovarB18);
 
+                    string article = tovarJMC[0];
+                    string newArticle = tovarJMC[1];
+                    string name = tovarJMC[2];
+
                     bool edits = false;
 
                     if(tovarB18[9] != tovarJMC[3])
@@ -275,10 +283,6 @@ namespace jazzmoto
 
                     if (chekedSEO)
                     {
-                        string article = tovarJMC[0];
-                        string newArticle = tovarJMC[1];
-                        string name = tovarJMC[2];
-
                         string descriptionText = descriptionTextTemplate;
                         string titleText = titleTextTemplate;
                         string keywordsText = keywordsTextTemplate;
@@ -290,6 +294,23 @@ namespace jazzmoto
                         tovarB18[11] = descriptionText;
                         tovarB18[12] = keywordsText;
                         tovarB18[13] = titleText;
+                        edits = true;
+                    }
+
+                    if (chekedMiniText)
+                    {
+                        string miniDescription = tovarJMC[5];
+                        string minitext = "<p>" + miniDescription + "</p>" + minitextTemplate;
+                        minitext = Replace(minitext, name, article);
+                        minitext = minitext.Remove(minitext.LastIndexOf("<p>"));
+                        minitext = minitext.Replace("&#40;", "(").Replace("&#41;", ")");
+                        tovarB18[7] = minitext;
+                        
+                        if (minitext.Contains("&"))
+                        {
+
+                        }
+
                         edits = true;
                     }
 
@@ -413,6 +434,7 @@ namespace jazzmoto
                 price = new Regex("(?<=Цена).*?(?=руб)").Match(infoSection[1].ToString()).ToString().Trim();
             price = ReturnPrice(price);
             string name = new Regex("(?<=<h1><span itemprop=\"name\">).*?(?=</span></h1>)").Match(otvTovar).ToString();
+            name = name.Replace("/", "-");
             string slug = chpu.vozvr(name);
 
             string razdel = ReturnRazdel(otvTovar);
@@ -542,6 +564,10 @@ namespace jazzmoto
             tbTitle.Invoke(new Action(() => tbTitle.Enabled = false));
             tbLoginNethouse.Invoke(new Action(() => tbLoginNethouse.Enabled = false));
             tbPassNethouse.Invoke(new Action(() => tbPassNethouse.Enabled = false));
+            cbMinitext.Invoke(new Action(() => cbMinitext.Enabled = false));
+            cbSEO.Invoke(new Action(() => cbSEO.Enabled = false));
+            gpOther.Invoke(new Action(() => gpOther.Enabled = false));
+            cbOther.Invoke(new Action(() => cbOther.Enabled = false));
         }
 
         private void ControlsFormEnabledTrue()
@@ -556,6 +582,10 @@ namespace jazzmoto
             tbTitle.Invoke(new Action(() => tbTitle.Enabled = true));
             tbLoginNethouse.Invoke(new Action(() => tbLoginNethouse.Enabled = true));
             tbPassNethouse.Invoke(new Action(() => tbPassNethouse.Enabled = true));
+            cbMinitext.Invoke(new Action(() => cbMinitext.Enabled = true));
+            cbSEO.Invoke(new Action(() => cbSEO.Enabled = true));
+            gpOther.Invoke(new Action(() => gpOther.Enabled = true));
+            cbOther.Invoke(new Action(() => cbOther.Enabled = true));
         }
 
         private string Replace(string text, string nameTovar, string article)
@@ -700,6 +730,14 @@ namespace jazzmoto
 
             if (b)
                 nethouse.SaveTovar(cookie, listProd);
+        }
+
+        private void cbOther_CheckedChanged(object sender, EventArgs e)
+        {
+            if (gpOther.Visible)
+                gpOther.Visible = false;
+            else
+                gpOther.Visible = true;
         }
     }
 }

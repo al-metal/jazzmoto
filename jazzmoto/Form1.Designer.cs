@@ -42,7 +42,11 @@
             this.tbLoginNethouse = new System.Windows.Forms.TextBox();
             this.tbPassNethouse = new System.Windows.Forms.TextBox();
             this.cbSEO = new System.Windows.Forms.CheckBox();
+            this.cbMinitext = new System.Windows.Forms.CheckBox();
+            this.gpOther = new System.Windows.Forms.GroupBox();
+            this.cbOther = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
+            this.gpOther.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnSaveTemplate
@@ -161,19 +165,53 @@
             // cbSEO
             // 
             this.cbSEO.AutoSize = true;
-            this.cbSEO.Location = new System.Drawing.Point(460, 168);
+            this.cbSEO.Location = new System.Drawing.Point(6, 19);
             this.cbSEO.Name = "cbSEO";
             this.cbSEO.Size = new System.Drawing.Size(100, 17);
             this.cbSEO.TabIndex = 22;
             this.cbSEO.Text = "Обновить СЕО";
             this.cbSEO.UseVisualStyleBackColor = true;
             // 
+            // cbMinitext
+            // 
+            this.cbMinitext.AutoSize = true;
+            this.cbMinitext.Location = new System.Drawing.Point(6, 42);
+            this.cbMinitext.Name = "cbMinitext";
+            this.cbMinitext.Size = new System.Drawing.Size(208, 17);
+            this.cbMinitext.TabIndex = 23;
+            this.cbMinitext.Text = "Обновить краткое описание товара";
+            this.cbMinitext.UseVisualStyleBackColor = true;
+            // 
+            // gpOther
+            // 
+            this.gpOther.Controls.Add(this.cbMinitext);
+            this.gpOther.Controls.Add(this.cbSEO);
+            this.gpOther.Location = new System.Drawing.Point(461, 191);
+            this.gpOther.Name = "gpOther";
+            this.gpOther.Size = new System.Drawing.Size(217, 63);
+            this.gpOther.TabIndex = 24;
+            this.gpOther.TabStop = false;
+            this.gpOther.Text = "Дополнительно";
+            this.gpOther.Visible = false;
+            // 
+            // cbOther
+            // 
+            this.cbOther.AutoSize = true;
+            this.cbOther.Location = new System.Drawing.Point(460, 168);
+            this.cbOther.Name = "cbOther";
+            this.cbOther.Size = new System.Drawing.Size(106, 17);
+            this.cbOther.TabIndex = 24;
+            this.cbOther.Text = "Дополнительно";
+            this.cbOther.UseVisualStyleBackColor = true;
+            this.cbOther.CheckedChanged += new System.EventHandler(this.cbOther_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(689, 339);
-            this.Controls.Add(this.cbSEO);
+            this.Controls.Add(this.cbOther);
+            this.Controls.Add(this.gpOther);
             this.Controls.Add(this.btnSaveTemplate);
             this.Controls.Add(this.btnImages);
             this.Controls.Add(this.tbKeywords);
@@ -188,6 +226,8 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.gpOther.ResumeLayout(false);
+            this.gpOther.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -209,6 +249,9 @@
         private System.Windows.Forms.TextBox tbLoginNethouse;
         private System.Windows.Forms.TextBox tbPassNethouse;
         private System.Windows.Forms.CheckBox cbSEO;
+        private System.Windows.Forms.CheckBox cbMinitext;
+        private System.Windows.Forms.GroupBox gpOther;
+        private System.Windows.Forms.CheckBox cbOther;
     }
 }
 
