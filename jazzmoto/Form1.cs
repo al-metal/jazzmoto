@@ -219,9 +219,52 @@ namespace jazzmoto
                 string nameCategory = new Regex("(?<=\">).*(?=</a>)").Match(urlNameCategory[i].ToString()).ToString();
                 GetUpdateTovar(cookieNethouse, urlCategory, urlNameCategory);
                 UploadTovar();
+                DeleteTovar();
             }
 
             ControlsFormEnabledTrue();
+        }
+
+        private void DeleteTovar()
+        {
+            otv = GetRequest("https://bike18.ru/products/category/zapchasti-dlya-pitbikov");
+            MatchCollection razdelSite = new Regex("(?<=<div class=\"category-capt-txt -text-center\"><a href=\").*?(?=\" class=\"blue\">)").Matches(otv);
+            string[] allprod = File.ReadAllLines("allTovars");
+            for (int i = 0; razdelSite.Count > i; i++)
+            {
+                otv = GetRequest("https://bike18.ru" + razdelSite[i].ToString() + "?page=all");
+                MatchCollection product = new Regex("(?<=<a href=\").*(?=\"><div class=\"-relative item-image\")").Matches(otv);
+                for (int n = 0; product.Count > n; n++)
+                {
+                    string urlTovar = product[n].ToString();
+                    otv = GetRequest(urlTovar);
+
+                    if (otv == "err")
+                    {
+                        StreamWriter s = new StreamWriter("badURL.txt", true);
+                        s.WriteLine(urlTovar);
+                        s.Close();
+                        continue;
+                    }
+
+                    string artProd = new Regex("(?<=Артикул:)[\\w\\W]*?(?=</div)").Match(otv).ToString().Trim();
+                    bool b = false;
+
+                    foreach (string str in allprod)
+                    {
+                        if (artProd == str)
+                        {
+                            b = true;
+                            break;
+                        }
+                    }
+
+                    if (!b)
+                    {
+                        nethouse.DeleteProduct(cookie, urlTovar);
+                    }
+                }
+            }
         }
 
         private void UploadTovar()
