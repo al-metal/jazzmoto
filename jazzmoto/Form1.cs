@@ -203,6 +203,7 @@ namespace jazzmoto
             chekedSEO = cbSEO.Checked;
             chekedMiniText = cbMinitext.Checked;
 
+            File.Delete("allTovars");
             File.Delete("naSite.csv");
             newProduct = newList();
             
@@ -234,6 +235,14 @@ namespace jazzmoto
             newProduct = newList();
         }
 
+        private void WriteArticlInFile(string articl)
+        {
+            string article = articl.ToString();
+            StreamWriter sw = new StreamWriter("allTovars", true);
+            sw.WriteLine(article);
+            sw.Close();
+        }
+
         private string GetRequest(string v)
         {
             var request2 = new HttpRequest();
@@ -259,6 +268,8 @@ namespace jazzmoto
 
                 if (tovarJMC == null)
                     continue;
+
+                WriteArticlInFile(tovarJMC[0]);
 
                 string urlTovarB18 = SearchTovar(tovarJMC);
                 if (urlTovarB18 == "")
