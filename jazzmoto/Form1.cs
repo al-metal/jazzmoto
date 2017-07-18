@@ -360,11 +360,6 @@ namespace jazzmoto
                         minitext = minitext.Replace("&#40;", "(").Replace("&#41;", ")");
                         tovarB18[7] = minitext;
                         
-                        if (minitext.Contains("&"))
-                        {
-
-                        }
-
                         edits = true;
                     }
 
