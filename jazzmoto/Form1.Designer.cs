@@ -45,6 +45,7 @@
             this.cbMinitext = new System.Windows.Forms.CheckBox();
             this.gpOther = new System.Windows.Forms.GroupBox();
             this.cbOther = new System.Windows.Forms.CheckBox();
+            this.cbFullText = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.gpOther.SuspendLayout();
             this.SuspendLayout();
@@ -184,11 +185,12 @@
             // 
             // gpOther
             // 
+            this.gpOther.Controls.Add(this.cbFullText);
             this.gpOther.Controls.Add(this.cbMinitext);
             this.gpOther.Controls.Add(this.cbSEO);
             this.gpOther.Location = new System.Drawing.Point(461, 191);
             this.gpOther.Name = "gpOther";
-            this.gpOther.Size = new System.Drawing.Size(217, 63);
+            this.gpOther.Size = new System.Drawing.Size(217, 85);
             this.gpOther.TabIndex = 24;
             this.gpOther.TabStop = false;
             this.gpOther.Text = "Дополнительно";
@@ -204,6 +206,16 @@
             this.cbOther.Text = "Дополнительно";
             this.cbOther.UseVisualStyleBackColor = true;
             this.cbOther.CheckedChanged += new System.EventHandler(this.cbOther_CheckedChanged);
+            // 
+            // cbFullText
+            // 
+            this.cbFullText.AutoSize = true;
+            this.cbFullText.Location = new System.Drawing.Point(6, 65);
+            this.cbFullText.Name = "cbFullText";
+            this.cbFullText.Size = new System.Drawing.Size(203, 17);
+            this.cbFullText.TabIndex = 24;
+            this.cbFullText.Text = "Обновить полное описание товара";
+            this.cbFullText.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -252,6 +264,7 @@
         private System.Windows.Forms.CheckBox cbMinitext;
         private System.Windows.Forms.GroupBox gpOther;
         private System.Windows.Forms.CheckBox cbOther;
+        private System.Windows.Forms.CheckBox cbFullText;
     }
 }
 
