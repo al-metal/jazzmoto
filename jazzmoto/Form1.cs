@@ -33,6 +33,7 @@ namespace jazzmoto
         string boldOpen = "";
         string boldClose = "</span>";
         int countUpdateImage = 0;
+        string discount = "";
 
         bool chekedSEO = false;
         bool chekedMiniText = false;
@@ -514,7 +515,7 @@ namespace jazzmoto
 
             string textAllCategory = new Regex("(?<=<li id=\")[\\w\\W]*?(?=</li></ul>)").Match(otv).ToString();
             MatchCollection urlNameCategory = new Regex("(?<=\"><a).*</a> <span>").Matches(textAllCategory);
-            for (int i = 14; urlNameCategory.Count > i; i++)
+            for (int i = 0; urlNameCategory.Count > i; i++)
             {
                 string urlCategory = new Regex("(?<=href=\").*(?=\">)").Match(urlNameCategory[i].ToString()).ToString();
                 urlCategory = "https://jazzmoto.ru" + urlCategory;
@@ -621,11 +622,13 @@ namespace jazzmoto
                 if (urlTovarB18 == "")
                 {
                     boldOpen = boldOpenCSV;
+                    discount = DiscountCSV();
                     GetWriteInCSV(tovarJMC);
                 }
                 else
                 {
                     boldOpen = boldOpenSite;
+                    discount = DiscountSite();
                     List<string> tovarB18 = nethouse.GetProductList(cookieNethouse, urlTovarB18);
 
                     string article = tovarJMC[0];
@@ -982,7 +985,6 @@ namespace jazzmoto
 
         private string Replace(string text, string nameTovar, string article)
         {
-            string discount = Discount();
             string nameText = boldOpen + nameTovar + boldClose;
             text = text.Replace("СКИДКА", discount).Replace("НАЗВАНИЕ", nameText).Replace("АРТИКУЛ", article).Replace("<p><br /></p><p><br /></p><p><br /></p><p>", "<p><br /></p>");
             return text;
@@ -1011,9 +1013,15 @@ namespace jazzmoto
             return text;
         }
 
-        private string Discount()
+        private string DiscountCSV()
         {
             string discount = "<p style=\"\"text-align: right;\"\"><span style=\"\"font-weight: bold; font-weight: bold;\"\"> 1. <a href=\"\"https://bike18.ru/oplata-dostavka\"\">Выгодные условия доставки по всей России!</a></span></p><p style=\"\"text-align: right;\"\"><span style=\"\"font-weight: bold; font-weight: bold;\"\"> 2. <a href=\"\"https://bike18.ru/stock\"\">Нашли дешевле!? 110% разницы Ваши!</a></span></p><p style=\"\"text-align: right;\"\"><span style=\"\"font-weight: bold; font-weight: bold;\"\"> 3. <a href=\"\"https://bike18.ru/service\"\">Также обращайтесь в наш сервис центр в Ижевске!</a></span></p>";
+            return discount;
+        }
+
+        private string DiscountSite()
+        {
+            string discount = "<p style=\"text-align: right;\"><span style=\"font-weight: bold; font-weight: bold;\"> 1. <a href=\"https://bike18.ru/oplata-dostavka\">Выгодные условия доставки по всей России!</a></span></p><p style=\"text-align: right;\"><span style=\"font-weight: bold; font-weight: bold;\"> 2. <a href=\"https://bike18.ru/stock\">Нашли дешевле!? 110% разницы Ваши!</a></span></p><p style=\"text-align: right;\"><span style=\"font-weight: bold; font-weight: bold;\"> 3. <a href=\"https://bike18.ru/service\">Также обращайтесь в наш сервис центр в Ижевске!</a></span></p>";
             return discount;
         }
 
