@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Bike18
 {
@@ -14,8 +12,102 @@ namespace Bike18
     {
         int addCount = 0;
 
-        httpRequest webRequest = new httpRequest();
+        #region Запросы
 
+        /// <summary>
+        /// Метод возвращает ответ на запрос в кодировке 1251
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public string getRequestEncod(string url)
+        {
+            HttpWebResponse res = null;
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.Proxy = null;
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0";
+            res = (HttpWebResponse)req.GetResponse();
+            StreamReader ressr = new StreamReader(res.GetResponseStream(), Encoding.GetEncoding(1251));
+            string otv = ressr.ReadToEnd();
+            res.Close();
+            return otv;
+        }
+
+        public string getRequest(string url)
+        {
+            HttpWebResponse res = null;
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0";
+            res = (HttpWebResponse)req.GetResponse();
+            StreamReader ressr = new StreamReader(res.GetResponseStream());
+            string otv = ressr.ReadToEnd();
+            res.GetResponseStream().Close();
+            req.GetResponse().Close();
+
+            return otv;
+        }
+
+        public string getRequest(CookieContainer cookie, string url)
+        {
+            HttpWebResponse res = null;
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.Proxy = null;
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0";
+            req.CookieContainer = cookie;
+            res = (HttpWebResponse)req.GetResponse();
+            StreamReader ressr = new StreamReader(res.GetResponseStream());
+            string otv = ressr.ReadToEnd();
+            res.GetResponseStream().Close();
+            req.GetResponse().Close();
+            res.Close();
+            return otv;
+        }
+
+        public string getRequest(CookieContainer cookie, string url, string stringQuery)
+        {
+            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.CookieContainer = cookie;
+            byte[] ms1 = Encoding.ASCII.GetBytes(stringQuery);
+            req.ContentLength = ms1.Length;
+            Stream stre1 = req.GetRequestStream();
+            stre1.Write(ms1, 0, ms1.Length);
+            stre1.Close();
+            HttpWebResponse resimg = (HttpWebResponse)req.GetResponse();
+            StreamReader ressrImg = new StreamReader(resimg.GetResponseStream());
+            string otv = ressrImg.ReadToEnd();
+            resimg.Close();
+            return otv;
+        }
+
+        public string PostRequest(CookieContainer cookie, string url)
+        {
+            string otv = null;
+            HttpWebResponse res = null;
+            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0";
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.CookieContainer = cookie;
+            res = (HttpWebResponse)req.GetResponse();
+            StreamReader ressr = new StreamReader(res.GetResponseStream());
+            otv = ressr.ReadToEnd();
+
+            return otv;
+        }
+
+        /// <summary>
+        /// Метод возвращает кукисы после авторизации на сайте nethouse.ru
+        /// </summary>
+        /// <param name="login"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         public CookieContainer CookieNethouse(string login, string password)
         {
             CookieContainer cookie = new CookieContainer();
@@ -34,13 +126,32 @@ namespace Bike18
             return cookie;
         }
 
-        public List<string> GetProductList(CookieContainer cookie, string urlTovar)
+        public CookieContainer webCookie(string url)
         {
-            if (!urlTovar.Contains("nethouse"))
-                urlTovar = urlTovar.Replace("http://bike18.ru/", "http://bike18.nethouse.ru/");
+            CookieContainer cooc = new CookieContainer();
+            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0";
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.CookieContainer = cooc;
+            Stream stre = req.GetRequestStream();
+            stre.Close();
+            HttpWebResponse res = (HttpWebResponse)req.GetResponse();
+            return cooc;
+        }
+
+        #endregion
+
+        public List<string> GetProductList(CookieContainer cookie, string urlProduct)
+        {
+            if (!urlProduct.Contains("nethouse"))
+            {
+                urlProduct = urlProduct.Replace(".ru", ".nethouse.ru");
+            }
 
             List<string> listTovar = new List<string>();
-            string otv = webRequest.PostRequest(cookie, urlTovar);
+            string otv = PostRequest(cookie, urlProduct);
             if (otv != null)
             {
                 string productId = new Regex("(?<=<section class=\"comment\" id=\").*?(?=\">)").Match(otv).ToString();
@@ -48,8 +159,8 @@ namespace Bike18
                 if (article.Length > 128 || article.Contains(" "))
                 {
                     MatchCollection articles = new Regex("(?<=Артикул:)[\\w\\W]*?(?=</div>)").Matches(otv);
-                    if(articles.Count >= 2)
-                    article = articles[1].ToString().Trim();
+                    if (articles.Count >= 2)
+                        article = articles[1].ToString().Trim();
                     else
                     {
 
@@ -88,7 +199,7 @@ namespace Bike18
                 if (reklama == "товар месяца")
                     reklama = "&markers[7]=1";
 
-                otv = webRequest.PostRequest(cookie, "https://bike18.nethouse.ru/api/catalog/getproduct?id=" + productId);
+                otv = PostRequest(cookie, "https://bike18.nethouse.ru/api/catalog/getproduct?id=" + productId);
                 string slug = new Regex("(?<=\",\"slug\":\").*?(?=\")").Match(otv).ToString();
                 string balance = new Regex("(?<=,\"balance\":\").*?(?=\",\")").Match(otv).ToString();
                 string productCastomGroup = new Regex("(?<=productCustomGroup\":).*?(?=,\")").Match(otv).ToString();
@@ -140,7 +251,7 @@ namespace Bike18
                     }
                 }
 
-                otv = webRequest.PostRequest(cookie, "https://bike18.nethouse.ru/api/catalog/productmedia?id=" + productId);
+                otv = PostRequest(cookie, "https://bike18.nethouse.ru/api/catalog/productmedia?id=" + productId);
                 string avatarId = new Regex("(?<=\"id\":\").*?(?=\")").Match(otv).Value;
                 string objektId = new Regex("(?<=\"objectId\":\").*?(?=\")").Match(otv).Value;
                 string timestamp = new Regex("(?<=\"timestamp\":\").*?(?=\")").Match(otv).Value;
@@ -263,6 +374,11 @@ namespace Bike18
             ressr1.Close();
         }
 
+        /// <summary>
+        /// Удаляет товар через полученный url
+        /// </summary>
+        /// <param name="cookie netouse"></param>
+        /// <param name="url product"></param>
         public void DeleteProduct(CookieContainer cookie, string url)
         {
             List<string> getProduct = GetProductList(cookie, url);
@@ -377,7 +493,7 @@ namespace Bike18
         public string alsoBuyTovars(List<string> tovarList)
         {
             string name = tovarList[4].ToString();
-            string otv = webRequest.getRequest("http://bike18.ru/products/search/page/1?sort=0&balance=&categoryId=&min_cost=&max_cost=&text=" + name);
+            string otv = getRequest("http://bike18.ru/products/search/page/1?sort=0&balance=&categoryId=&min_cost=&max_cost=&text=" + name);
             MatchCollection searchTovars = new Regex("(?<=<div class=\"product-item preview-size-156\" id=\"item).*?(?=\"><div class=\"background\">)").Matches(otv);
             string alsoBuy = "";
             int count = 0;
@@ -402,7 +518,7 @@ namespace Bike18
             string otv = null;
             string urlTovarBike = null;
 
-            otv = webRequest.getRequest("http://bike18.ru/products/search/page/1?sort=0&balance=&categoryId=&min_cost=&max_cost=&text=" + searchString);
+            otv = getRequest("http://bike18.ru/products/search/page/1?sort=0&balance=&categoryId=&min_cost=&max_cost=&text=" + searchString);
             MatchCollection strUrlProd1 = new Regex("(?<=<a href=\").*(?=\"><div class=\"-relative item-image\")").Matches(otv);
             for (int t = 0; strUrlProd1.Count > t; t++)
             {
@@ -417,12 +533,17 @@ namespace Bike18
         }
 
         #region Загрузка картинки товара на сайта Bike18.ru
+
         public void UploadImage(CookieContainer cookieBike18, string urlProduct)
         {
             string otv = null;
-            urlProduct = urlProduct.Replace("http://bike18.ru", "http://bike18.nethouse.ru");
 
-            otv = webRequest.PostRequest(cookieBike18, urlProduct);
+            if (!urlProduct.Contains("nethouse"))
+            {
+                urlProduct = urlProduct.Replace(".ru", ".nethouse.ru");
+            }
+
+            otv = PostRequest(cookieBike18, urlProduct);
             String article = new Regex("(?<=Артикул:)[\\w\\W]*?(?=</div>)").Match(otv).Value.Trim();
             if (article.Length > 128 || article.Contains(" "))
             {
@@ -499,6 +620,7 @@ namespace Bike18
 
             string otvSave = ressrSave.ReadToEnd();
         }
+
         #endregion
 
         #region UploadCSVInNethouse
@@ -658,84 +780,5 @@ namespace Bike18
         }
 
         #endregion
-
-        public string PostRequest(string url, CookieContainer cookie, string toke, string Inquiry)
-        {
-            string otv = null;
-            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
-            req.Accept = "application/json, text/javascript, */*; q=0.01";
-            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36";
-            req.Method = "POST";
-            req.Referer = "https://my.tiu.ru/cabinet/sign-in";
-            req.ContentType = "application/x-www-form-urlencoded";
-            req.Headers.Add("X-CSRFToken", toke);
-            req.Headers.Add("Origin", "https://my.tiu.ru");
-            req.CookieContainer = cookie;
-            Inquiry = Uri.EscapeUriString(Inquiry);
-            byte[] ms = Encoding.UTF8.GetBytes(Inquiry);
-            req.ContentLength = ms.Length;
-            Stream stre = req.GetRequestStream();
-            stre.Write(ms, 0, ms.Length);
-            stre.Close();
-            HttpWebResponse res = (HttpWebResponse)req.GetResponse();
-            return otv;
-        }
-
-        public string PostRequestaddTovarTIU(string url, CookieContainer cookie, string toke, string Inquiry)
-        {
-            string otv = null;
-            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
-            req.Accept = "text/plain, */*; q=0.01";
-            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36";
-            req.Method = "POST";
-            req.Referer = "https://my.tiu.ru/cabinet/product2/create?next=%2Fcabinet%2Fproduct2%2Froot_group";
-            req.ContentType = "application/x-www-form-urlencoded";
-            req.Headers.Add("X-CSRFToken", toke);
-            req.Headers.Add("Accept-Encoding", "gzip, deflate, br");
-            req.Headers.Add("X-Requested-With", "XMLHttpRequest");
-            req.Headers.Add("X-PromUserID", "2269119");
-            req.Headers.Add("Origin", "https://my.tiu.ru");
-            req.CookieContainer = cookie;
-            Inquiry = Uri.EscapeUriString(Inquiry);
-            byte[] ms = Encoding.UTF8.GetBytes(Inquiry);
-            req.ContentLength = ms.Length;
-            Stream stre = req.GetRequestStream();
-            stre.Write(ms, 0, ms.Length);
-            stre.Close();
-            HttpWebResponse res = (HttpWebResponse)req.GetResponse();
-            StreamReader ressr = new StreamReader(res.GetResponseStream(), Encoding.GetEncoding(1251));
-            otv = ressr.ReadToEnd();
-            return otv;
-        }
-
-        public string PostRequestaddTovarTIUImage(string url, CookieContainer cookie, string toke, string nameImg)
-        {
-            //string[] ss = null;
-            string otv = null;
-            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
-            req.Accept = "text/plain, */*; q=0.01";
-            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36";
-            req.Method = "POST";
-            req.Referer = "https://my.tiu.ru/cabinet/product2/create?parent_group=13123987&group=13123987&next=https%3A%2F%2Fmy.tiu.ru%2Fcabinet%2Fproduct2%2Findex%2F13123987%3Fstatus%3D0";
-            req.ContentType = "multipart/form-data; boundary=----WebKitFormBoundary6xQSdC1xfgFODwBz";
-            req.Headers.Add("X-CSRFToken", toke);
-            req.Headers.Add("X-PromUserID", "2269119");
-            req.Headers.Add("Origin", "https://my.tiu.ru");
-            req.CookieContainer = cookie;
-            //req.Referer = "https://my.tiu.ru/cabinet/product2/create?next=%2Fcabinet%2Fproduct2%2Froot_group";
-            byte[] pic = File.ReadAllBytes("pic\\" + nameImg);
-            byte[] ms = Encoding.UTF8.GetBytes(File.ReadAllText("TemplateLoadImageStart.txt"));
-            byte[] end = Encoding.UTF8.GetBytes(File.ReadAllText("TemplateLoadImageEnd.txt"));
-            req.ContentLength = ms.Length + pic.Length + end.Length;
-            Stream stre = req.GetRequestStream();
-            stre.Write(ms, 0, ms.Length);
-            stre.Write(pic, 0, pic.Length);
-            stre.Write(end, 0, end.Length);
-            stre.Close();
-            HttpWebResponse res = (HttpWebResponse)req.GetResponse();
-            StreamReader ressr = new StreamReader(res.GetResponseStream(), Encoding.GetEncoding(1251));
-            otv = ressr.ReadToEnd();
-            return otv;
-        }
     }
 }
