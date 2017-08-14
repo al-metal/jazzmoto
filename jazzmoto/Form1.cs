@@ -1,19 +1,14 @@
-﻿using Bike18;
-using RacerMotors;
+﻿using RacerMotors;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using xNet.Net;
+using TestLibrary; 
 using Формирование_ЧПУ;
 
 namespace jazzmoto
@@ -44,6 +39,7 @@ namespace jazzmoto
         CHPU chpu = new CHPU();
         CookieContainer cookieNethouse = new CookieContainer();
         nethouse nethouse = new nethouse();
+                
         CookieContainer cookie = new CookieContainer();
         WebClient webClient = new WebClient();
 
@@ -618,7 +614,7 @@ namespace jazzmoto
                 WriteArticlInFile(tovarJMC[1]);
                 
 
-                string urlTovarB18 = SearchTovar(tovarJMC);
+                string urlTovarB18 = nethouse.searchTovar (tovarJMC[1], tovarJMC[1]);
                 if (urlTovarB18 == "")
                 {
                     boldOpen = boldOpenCSV;
