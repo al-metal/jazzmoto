@@ -35,6 +35,9 @@
     <Reference Include="CookComputing.XmlRpcV3, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenXNet.0.2\lib\CookComputing.XmlRpcV3.dll</HintPath>
     </Reference>
+    <Reference Include="NehouseLibrary">
+      <HintPath>..\..\NehouseLibrary\NehouseLibrary\bin\Debug\NehouseLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="OpenXNet, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenXNet.0.2\lib\OpenXNet.dll</HintPath>
     </Reference>
@@ -50,9 +53,6 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="TestLibrary">
-      <HintPath>C:\Users\al-metal\Documents\Visual Studio 2017\Projects\TestLibrary\TestLibrary\bin\Debug\TestLibrary.dll</HintPath>
-    </Reference>
     <Reference Include="xNet">
       <HintPath>..\..\IrbisMoto\xNet.dll</HintPath>
     </Reference>
