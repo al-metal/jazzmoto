@@ -673,12 +673,12 @@ namespace jazzmoto
 
             countUpdateImage = 0;
             otv = nethouse.getRequest("https://bike18.ru/products/category/zapchasti-dlya-pitbikov");
-            MatchCollection razdel = new Regex("(?<=</div></a><div class=\"category-capt-txt -text-center\"><a href=\").*?(?=\" class=\"blue\">)").Matches(otv);
+            MatchCollection razdel = new Regex("(?<=class=\"category-item__link\"><a href=\").*?(?=\">)").Matches(otv);
 
             for (int i = 0; razdel.Count > i; i++)
             {
-                otv = nethouse.getRequest("http://bike18.ru" + razdel[i].ToString() + "?page=all");
-                MatchCollection tovar = new Regex("(?<=<div class=\"product-link -text-center\"><a href=\").*(?=\" >)").Matches(otv);
+                otv = nethouse.getRequest("https://bike18.ru" + razdel[i].ToString() + "?page=all");
+                MatchCollection tovar = new Regex("(?<=class=\"product-item__content\"><a href=\").*(?=\")").Matches(otv);
                 foreach (Match s in tovar)
                 {
                     string urlTovar = s.ToString();
