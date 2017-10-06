@@ -212,15 +212,15 @@ namespace jazzmoto
             nethouse.NewListUploadinBike18("naSite");
             newProduct = new List<string>();
             
-            string otv = nethouse.getRequest("https://jazzmoto.ru/shop/tovari/dlya_pitbaykov/"); 
+            string otv = nethouse.getRequestEncodingUTF8("https://jazzmoto.ru/shop/tovari/dlya_pitbaykov/"); 
 
             string textAllCategory = new Regex("(?<=<li id=\")[\\w\\W]*?(?=</li></ul>)").Match(otv).ToString();
-            MatchCollection urlNameCategory = new Regex("(?<=\"><a).*</a> <span>").Matches(textAllCategory);
+            MatchCollection urlNameCategory = new Regex("(?<=<li class=\"bx-nav-3-lvl\">)[\\w\\W]*?(?=</li>)").Matches(otv);
             for (int i = 0; urlNameCategory.Count > i; i++)
             {
-                string urlCategory = new Regex("(?<=href=\").*(?=\">)").Match(urlNameCategory[i].ToString()).ToString();
+                string urlCategory = new Regex("(?<=href=\").*?(?=\")").Match(urlNameCategory[i].ToString()).ToString();
                 urlCategory = "https://jazzmoto.ru" + urlCategory;
-                string nameCategory = new Regex("(?<=\">).*(?=</a>)").Match(urlNameCategory[i].ToString()).ToString();
+                string nameCategory = new Regex("(?<=<span>).*?(?=</span>)").Match(urlNameCategory[i].ToString()).ToString();
                 GetUpdateTovar(cookieNethouse, urlCategory, urlNameCategory);
                 UploadTovar();
             }
@@ -291,95 +291,121 @@ namespace jazzmoto
         }
 
         private void GetUpdateTovar(CookieDictionary cookieNethouse, string urlCategory, MatchCollection urlNameCategory)
+        {   
+            string otv = nethouse.getRequest(urlCategory);
+
+            MatchCollection pagesProduct = new Regex("(?<=<li class=\"\"><a href=\").*?(?=\"><span>)").Matches(otv);
+
+            if(pagesProduct.Count == 0)
+            {
+                UpdateAllProducts(otv);
+            }
+            else
+            {
+                UpdateAllProducts(otv);
+                for (int i = 0; pagesProduct.Count > i; i++)
+                {
+                    urlCategory = "https://jazzmoto.ru" + pagesProduct[i].ToString();
+                    otv = nethouse.getRequest(urlCategory);
+                    UpdateAllProducts(otv);
+                }
+            }
+            
+        }
+
+        private void UpdateAllProducts(string otv)
         {
-            string otv = nethouse.getRequest(urlCategory + "?count=all");
-            string allTovarsStr = new Regex("(?<=<div class=\"bx_catalog_list_home col3 bx_green\">)[\\w\\W]*?(?=id=\"add_ajax_item)").Match(otv).ToString();
-            MatchCollection urlTovars = new Regex("(?<=<a href=\").*?(?=\" title=\")").Matches(allTovarsStr);
+            MatchCollection urlTovars = new Regex("(?<=<a class=\"product-item-image-wrapper\" href=\").*?(?=\")").Matches(otv);
             foreach (Match s in urlTovars)
             {
-                string urlTovar = "https://jazzmoto.ru" + s.ToString();
+                UpdateProducts(s.ToString());
+            }
+        }
 
-                List<string> tovarJMC = GetTovarJMC(urlTovar);
+        private void UpdateProducts(string url)
+        {
+            string urlTovar = "https://jazzmoto.ru" + url;
 
-                if (tovarJMC == null)
-                    continue;
+            List<string> tovarJMC = GetTovarJMC(urlTovar);
 
-                WriteArticlInFile(tovarJMC[1]);
-                
-                string urlTovarB18 = nethouse.searchTovar (tovarJMC[1], tovarJMC[1]);
-                if (urlTovarB18 == "" || urlTovarB18 == null)
+            if (tovarJMC == null)
+                return;
+
+            WriteArticlInFile(tovarJMC[1]);
+
+            string urlTovarB18 = nethouse.searchTovar(tovarJMC[1], tovarJMC[1]);
+            if (urlTovarB18 == "" || urlTovarB18 == null)
+            {
+                boldOpen = boldOpenCSV;
+                discount = nethouse.Discount().Replace("\"", "\"\"");
+                GetWriteInCSV(tovarJMC);
+            }
+            else
+            {
+                boldOpen = boldOpenSite;
+                discount = nethouse.Discount();
+                List<string> tovarB18 = nethouse.GetProductList(cookieNethouse, urlTovarB18);
+
+                string article = tovarJMC[0];
+                string newArticle = tovarJMC[1];
+                string name = tovarJMC[2];
+
+                bool edits = false;
+
+                if (tovarB18[9] != tovarJMC[3])
                 {
-                    boldOpen = boldOpenCSV;
-                    discount = nethouse.Discount().Replace("\"", "\"\"");
-                    GetWriteInCSV(tovarJMC);
+                    tovarB18[9] = tovarJMC[3];
+                    edits = true;
                 }
-                else
+
+                if (chekedSEO)
                 {
-                    boldOpen = boldOpenSite;
-                    discount = nethouse.Discount();
-                    List<string> tovarB18 = nethouse.GetProductList(cookieNethouse, urlTovarB18);
+                    string descriptionText = descriptionTextTemplate;
+                    string titleText = titleTextTemplate;
+                    string keywordsText = keywordsTextTemplate;
 
-                    string article = tovarJMC[0];
-                    string newArticle = tovarJMC[1];
-                    string name = tovarJMC[2];
+                    titleText = ReplaceSEO("title", titleText, name, article.Replace(";", " "), newArticle.Replace(";", " "));
+                    descriptionText = ReplaceSEO("description", descriptionText, name, article, newArticle);
+                    keywordsText = ReplaceSEO("keywords", keywordsText, name, article, newArticle);
 
-                    bool edits = false;
-
-                    if(tovarB18[9] != tovarJMC[3])
-                    {
-                        tovarB18[9] = tovarJMC[3];
-                        edits = true;
-                    }
-
-                    if (chekedSEO)
-                    {
-                        string descriptionText = descriptionTextTemplate;
-                        string titleText = titleTextTemplate;
-                        string keywordsText = keywordsTextTemplate;
-
-                        titleText = ReplaceSEO("title", titleText, name, article.Replace(";", " "), newArticle.Replace(";", " "));
-                        descriptionText = ReplaceSEO("description", descriptionText, name, article, newArticle);
-                        keywordsText = ReplaceSEO("keywords", keywordsText, name, article, newArticle);
-
-                        tovarB18[11] = descriptionText;
-                        tovarB18[12] = keywordsText;
-                        tovarB18[13] = titleText;
-                        edits = true;
-                    }
-
-                    if (chekedMiniText)
-                    {
-                        string miniDescription = tovarJMC[5];
-                        string minitext = "<p>" + miniDescription + "</p>" + minitextTemplate;
-                        minitext = Replace(minitext, name, article);
-                        minitext = minitext.Remove(minitext.LastIndexOf("<p>"));
-                        minitext = minitext.Replace("&#40;", "(").Replace("&#41;", ")");
-                        tovarB18[7] = minitext;
-                        
-                        edits = true;
-                    }
-
-                    if (chekedFullText)
-                    {
-                        string fullText = fullTextTemplate.Replace("\"\"", "\"");
-                        fullText = Replace(fullText, name, article);
-                        fullText = fullText.Remove(fullText.LastIndexOf("<p>"));
-                        tovarB18[8] = fullText;
-
-                        edits = true;
-                    }
-
-                    if (tovarB18[42].Contains("&alsoBuy[0]=0"))
-                    {
-                        tovarB18[42] = nethouse.alsoBuyTovars(tovarB18);
-                        edits = true;
-                    }
-
-                    tovarB18 = ReplaceAmpersChar(tovarB18);
-
-                    if (edits)
-                        nethouse.SaveTovar(cookieNethouse, tovarB18);
+                    tovarB18[11] = descriptionText;
+                    tovarB18[12] = keywordsText;
+                    tovarB18[13] = titleText;
+                    edits = true;
                 }
+
+                if (chekedMiniText)
+                {
+                    string miniDescription = tovarJMC[5];
+                    string minitext = "<p>" + miniDescription + "</p>" + minitextTemplate;
+                    minitext = Replace(minitext, name, article);
+                    minitext = minitext.Remove(minitext.LastIndexOf("<p>"));
+                    minitext = minitext.Replace("&#40;", "(").Replace("&#41;", ")");
+                    tovarB18[7] = minitext;
+
+                    edits = true;
+                }
+
+                if (chekedFullText)
+                {
+                    string fullText = fullTextTemplate.Replace("\"\"", "\"");
+                    fullText = Replace(fullText, name, article);
+                    fullText = fullText.Remove(fullText.LastIndexOf("<p>"));
+                    tovarB18[8] = fullText;
+
+                    edits = true;
+                }
+
+                if (tovarB18[42].Contains("&alsoBuy[0]=0"))
+                {
+                    tovarB18[42] = nethouse.alsoBuyTovars(tovarB18);
+                    edits = true;
+                }
+
+                tovarB18 = ReplaceAmpersChar(tovarB18);
+
+                if (edits)
+                    nethouse.SaveTovar(cookieNethouse, tovarB18);
             }
         }
 
@@ -452,48 +478,30 @@ namespace jazzmoto
         {
             List<string> tovar = new List<string>();
 
-            string otvTovar = nethouse.getRequest(urlTovar);
-            bool availability = otvTovar.Contains("<span class=\"item_section_name_gray\" style=\"display: ;\">");
+            string otvTovar = nethouse.getRequestEncodingUTF8(urlTovar);
+            bool availability = otvTovar.Contains("style=\"display: ;\">");
 
             if (!availability)
                 return tovar = null;
-
-            MatchCollection infoSection = new Regex("(?<=<div class=\"item_info_section\">)[\\w\\W]*?(?=</div>)").Matches(otvTovar);
-
-            MatchCollection parametrsString = new Regex("(?<=<b>).*?(?=<br>)").Matches(infoSection[0].ToString());
-            string article = new Regex("(?<=Товара:</b>).*?(?=<br>)").Match(infoSection[0].ToString()).ToString().Trim();
+            
+            string miniDescription = new Regex("(?<=<p style=\"text-align: justify;margin: 20px 0px;\">).*?(?=</p>)").Match(otvTovar).ToString();
+            string article = new Regex("(?<=<dt>Код товара</dt>)[\\w\\W]*?(?=</dd>)").Match(otvTovar).ToString().Trim();
             if (article == "")
                 return tovar = null;
+            article = article.Replace("<dd>", "").Trim();
             string newArticle = "JMC_" + article;
+            miniDescription = newArticle + "\n" + miniDescription;           
 
-            string urlImg = new Regex("(?<=<img itemprop=\"image\").*(?=\" alt)").Match(otvTovar).ToString();
-            urlImg = "https:" + new Regex("(?<=src=\").*").Match(urlImg).ToString();
+            string urlImg = new Regex("(?<=<div class=\"product-item-detail-slider-image active\")[\\w\\W]*?(?=</div>)").Match(otvTovar).ToString();
+            urlImg = "https:" + new Regex("(?<=<img src=\").*?(?=\")").Match(urlImg).ToString();
 
             DownloadImages(urlImg, newArticle);
 
-            string miniDescription = "";
-            if (infoSection.Count == 5)
-            {
-                foreach (Match s in parametrsString)
-                {
-                    string parametrsStr = s.ToString().Replace(":</b>", "");
-                    if (parametrsStr.Contains("ШтрихКод"))
-                        continue;
-                    miniDescription += parametrsStr + "<br >";
-                }
-                miniDescription = miniDescription.Replace(article, newArticle);
-                miniDescription += infoSection[1].ToString();
-            }
-            miniDescription = miniDescription.Replace("\n", "");
-
-            string price = "";
-            if (infoSection.Count == 5)
-                price = new Regex("(?<=Цена).*?(?=руб)").Match(infoSection[2].ToString()).ToString().Trim();
-            else
-                price = new Regex("(?<=Цена).*?(?=руб)").Match(infoSection[1].ToString()).ToString().Trim();
+            string price = new Regex("(?<=<div class=\"product-item-detail-price-current\" data-entity=\"panel-price\">)[\\w\\W]*?(?=руб.)").Match(otvTovar).ToString().Trim();
+            price = price.Replace(" ", "");
             price = nethouse.ReturnPrice(Convert.ToDouble(price), discountCoast).ToString();
-            string name = new Regex("(?<=<h1><span itemprop=\"name\">).*?(?=</span></h1>)").Match(otvTovar).ToString();
-            name = name.Replace("/", "-");
+
+            string name = new Regex("(?<=<h1 style=\"text-transform: uppercase;font-weight: 600;\">).*?(?=</h1>)").Match(otvTovar).ToString();
             string slug = chpu.vozvr(name);
 
             string razdel = ReturnRazdel(otvTovar);
@@ -513,8 +521,8 @@ namespace jazzmoto
         {
             string razdel = "Запчасти и расходники => Запчасти для питбайков => ";
 
-            MatchCollection allRazdels = new Regex("(?<=<a href=\").*?(?=itemprop=\"url\">)").Matches(otvTovar);
-            string nameRazdel = new Regex("(?<=title=\").*?(?=\")").Match(allRazdels[allRazdels.Count - 1].ToString()).ToString();
+            MatchCollection allRazdels = new Regex("(?<=\" title=\").*?(?=\" itemprop=\"url\")").Matches(otvTovar);
+            string nameRazdel = allRazdels[allRazdels.Count - 1].ToString();
 
             razdel += nameRazdel;
             return razdel;
