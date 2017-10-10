@@ -232,12 +232,12 @@ namespace jazzmoto
         private void DeleteTovar()
         {
             otv = nethouse.getRequest("https://bike18.ru/products/category/zapchasti-dlya-pitbikov");
-            MatchCollection razdelSite = new Regex("(?<=<div class=\"category-capt-txt -text-center\"><a href=\").*?(?=\" class=\"blue\">)").Matches(otv);
+            MatchCollection razdelSite = new Regex("(?<=<div class=\"category-item__link\"><a href=\").*?(?=\">)").Matches(otv);
             string[] allprod = File.ReadAllLines("allTovars");
             for (int i = 0; razdelSite.Count > i; i++)
             {
                 otv = nethouse.getRequest("https://bike18.ru" + razdelSite[i].ToString() + "?page=all");
-                MatchCollection product = new Regex("(?<=<a href=\").*(?=\"><div class=\"-relative item-image\")").Matches(otv);
+                MatchCollection product = new Regex("(?<=<div class=\"product-item__content\"><a href=\").*?(?=\")").Matches(otv);
                 for (int n = 0; product.Count > n; n++)
                 {
                     string urlTovar = product[n].ToString();
@@ -490,7 +490,7 @@ namespace jazzmoto
                 return tovar = null;
             article = article.Replace("<dd>", "").Trim();
             string newArticle = "JMC_" + article;
-            miniDescription = newArticle + "\n" + miniDescription;           
+            miniDescription = "<p>" + newArticle + "</p>" + miniDescription;           
 
             string urlImg = new Regex("(?<=<div class=\"product-item-detail-slider-image active\")[\\w\\W]*?(?=</div>)").Match(otvTovar).ToString();
             urlImg = "https:" + new Regex("(?<=<img src=\").*?(?=\")").Match(urlImg).ToString();
